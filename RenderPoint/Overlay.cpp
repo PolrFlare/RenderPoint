@@ -57,9 +57,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK WndProcSecondary(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    static HBRUSH hBrush = CreateSolidBrush(RGB(255, 255, 255)); // White background
+
     switch (uMsg)
     {
+    case WM_CTLCOLORSTATIC:
+    {
+        HDC hdcStatic = (HDC)wParam;
+        SetBkMode(hdcStatic, TRANSPARENT); // Make text background transparent
+        return (LRESULT)hBrush;            // Use a white brush for background
+    }
     case WM_DESTROY:
+        DeleteObject(hBrush); // Clean up resources
         PostQuitMessage(0);
         return 0;
     case WM_CLOSE:
@@ -204,9 +213,26 @@ void configWindow(HINSTANCE hInstance)
     wc.lpszClassName = CLASS_NAME;
     RegisterClass(&wc);
 
+    //soon we want to be able to hid the window instead of closing it, so wed only use ws iconics
     hwnd2 = CreateWindowEx(
-        0, CLASS_NAME, L"Config", WS_OVERLAPPEDWINDOW,
+        0, CLASS_NAME, L"Config", WS_ICONIC | WS_SYSMENU,
         CW_USEDEFAULT, CW_USEDEFAULT, 400, 300, nullptr, nullptr, hInstance, nullptr);
+
+    HWND colorText = CreateWindowEx(
+        0, L"STATIC", L"Color", WS_CHILD | WS_VISIBLE | SS_CENTER,
+        50, 20, 100, 20, hwnd2, nullptr, hInstance, nullptr
+    );
+
+    HFONT hFont = CreateFont(
+        20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+        CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, L"Helvetica"
+    );
+    SendMessage(colorText, WM_SETFONT, (WPARAM)hFont, TRUE);
+    SetLayeredWindowAttributes(colorText, RGB(255, 0, 0), 0, LWA_COLORKEY);
+
+    HWND hwndTextbox = CreateWindowEx(
+        0, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+        160, 20, 150, 21, hwnd2, (HMENU)1, hInstance, nullptr);
 
     ShowWindow(hwnd2, SW_SHOWNORMAL);
     UpdateWindow(hwnd2);
