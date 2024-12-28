@@ -212,10 +212,9 @@ void configWindow(HINSTANCE hInstance)
     UpdateWindow(hwnd2);
 }
 
-// Main entry point
+//main
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
 {
-    // Register window class for main window
     const wchar_t CLASS_NAME[] = L"Direct2DWindow";
     WNDCLASS wc = {};
     wc.lpfnWndProc = WndProc;
@@ -223,13 +222,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow)
     wc.lpszClassName = CLASS_NAME;
     RegisterClass(&wc);
 
-    // Create the main Direct2D window with borderless style
+    //borderless and transparent
     hwnd = CreateWindowEx(
-        WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,  // Transparent and always on top
+        WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
         CLASS_NAME, L"Direct2D Always On Top", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
         nullptr, nullptr, hInstance, nullptr);
 
-    //make window transparent
     SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
 
     CenterWindow(hwnd);
