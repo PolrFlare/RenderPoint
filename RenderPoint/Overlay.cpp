@@ -117,7 +117,7 @@ void DiscardGraphicsResources()
         pBrush->Release();
         pBrush = nullptr;
     }
-}
+} 
 
 //chroma effect
 void UpdateRainbowColor()
@@ -149,14 +149,12 @@ void UpdateRainbowColor()
     pBrush->SetColor(D2D1::ColorF(r, g, b));
 }
 
-// Draw a crosshair in the center of the window
 void DrawCrosshair(float centerX, float centerY, float size)
 {
-    // Horizontal line of the crosshair
-    pRenderTarget->FillRectangle(D2D1::RectF(centerX - size / 2, centerY - 1, centerX + size / 2, centerY + 1), pBrush);
-
-    // Vertical line of the crosshair
-    pRenderTarget->FillRectangle(D2D1::RectF(centerX - 1, centerY - size / 2, centerX + 1, centerY + size / 2), pBrush);
+    pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED); //removes tiny jagged border
+    D2D1_ELLIPSE ellipse = D2D1::Ellipse(D2D1::Point2F(centerX, centerY), 3.0f, 3.0f);
+    pRenderTarget->FillEllipse(ellipse, pBrush);
+    //pRenderTarget->FillRectangle(D2D1::RectF(centerX - 1, centerY - size / 2, centerX + 1, centerY + size / 2), pBrush);
 }
 
 //render crosshair
@@ -167,18 +165,17 @@ void Render()
         CreateGraphicsResources();
     }
 
-    // Update the rainbow color for the animation
     UpdateRainbowColor();
 
     pRenderTarget->BeginDraw();
-    pRenderTarget->Clear(D2D1::ColorF(0, 0, 0, 0));  // Transparent background
+    pRenderTarget->Clear(D2D1::ColorF(0, 0, 0, 0));
 
-    // Draw the crosshair at the center of the window
+    //put crosshair center of window
     RECT rc;
     GetClientRect(hwnd, &rc);
     float centerX = (rc.right - rc.left) / 2.0f;
     float centerY = (rc.bottom - rc.top) / 2.0f;
-    float size = 15.0f;  // Size of the crosshair
+    float size = 15.0f; 
 
     DrawCrosshair(centerX, centerY, size);
 
@@ -203,7 +200,7 @@ void CenterWindow(HWND hwnd)
     SetWindowPos(hwnd, HWND_TOPMOST, xPos, yPos, 0, 0, SWP_NOSIZE);
 }
 
-//config window
+// Config window
 void configWindow(HINSTANCE hInstance)
 {
     const wchar_t CLASS_NAME[] = L"Config";
@@ -213,26 +210,30 @@ void configWindow(HINSTANCE hInstance)
     wc.lpszClassName = CLASS_NAME;
     RegisterClass(&wc);
 
-    //soon we want to be able to hid the window instead of closing it, so wed only use ws iconics
     hwnd2 = CreateWindowEx(
-        0, CLASS_NAME, L"Config", WS_ICONIC | WS_SYSMENU,
-        CW_USEDEFAULT, CW_USEDEFAULT, 400, 300, nullptr, nullptr, hInstance, nullptr);
+        0, CLASS_NAME, L"Config", WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        CW_USEDEFAULT, CW_USEDEFAULT, 400, 200, nullptr, nullptr, hInstance, nullptr);
 
     HWND colorText = CreateWindowEx(
-        0, L"STATIC", L"Color", WS_CHILD | WS_VISIBLE | SS_CENTER,
-        50, 20, 100, 20, hwnd2, nullptr, hInstance, nullptr
-    );
+        0, L"STATIC", L"Color", WS_CHILD | WS_VISIBLE | SS_LEFT,
+        20, 30, 50, 20, hwnd2, nullptr, hInstance, nullptr);
 
     HFONT hFont = CreateFont(
-        20, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+        18, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
         CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, L"Helvetica"
     );
     SendMessage(colorText, WM_SETFONT, (WPARAM)hFont, TRUE);
-    SetLayeredWindowAttributes(colorText, RGB(255, 0, 0), 0, LWA_COLORKEY);
 
     HWND hwndTextbox = CreateWindowEx(
         0, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
-        160, 20, 150, 21, hwnd2, (HMENU)1, hInstance, nullptr);
+        80, 30, 200, 24, hwnd2, (HMENU)1, hInstance, nullptr);
+
+    HWND hwndButton = CreateWindowEx(
+        0, L"BUTTON", L"Cross", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_FLAT,
+        20, 60, 70, 30, hwnd2, (HMENU)2, hInstance, nullptr);
+
+    SendMessage(hwndTextbox, WM_SETFONT, (WPARAM)hFont, TRUE);
+    SendMessage(hwndButton, WM_SETFONT, (WPARAM)hFont, TRUE);
 
     ShowWindow(hwnd2, SW_SHOWNORMAL);
     UpdateWindow(hwnd2);
